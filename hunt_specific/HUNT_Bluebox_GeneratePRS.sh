@@ -7,7 +7,7 @@
 
 pheno=$1
 output=/home/bwolford/bluebox/results
-score_directory=/home/bwolford/bluebox/data/
+score_directory=/home/bwolford/bluebox/data
 frequency_directory=/home/bwolford/bluebox/data
 snplist_directory=/home/bwolford/bluebox/hunt_specific
 genotype_directory=/home/bwolford/bluebox/data
