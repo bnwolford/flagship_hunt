@@ -22,7 +22,7 @@ endpoint_file<-"/mnt/work/workbench/bwolford/hunt_flagship/hunt_specific/HUNT_de
 master_file<-"/mnt/work/master/DATASET_20170512/SAMPLE_QC/Masterkey_DATASET.20170512.txt.gz"
 bridge_file<-"/mnt/work/bridge/allin-phecode-2018_41492/PID@108485-PID@105118.sav"
 fam_file<-"/mnt/scratch/brooke/bcf/all.log.fam"
-output_dir="/mnt/work/workbench/bwolford/intervene/"
+output_dir="/mnt/work/workbench/bwolford/intervene/2022_10_06"
 
 files<-list.files("/mnt/work/phenotypes/allin-phecode-2018_41492/kilde/hnt/",full.names=TRUE)
 files<- files[!grepl("etter",files)] #what is issue with that sav file?
