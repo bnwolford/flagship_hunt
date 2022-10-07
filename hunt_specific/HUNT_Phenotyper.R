@@ -16,7 +16,7 @@ library(lubridate)
 
 ###### variables #######
 #endpoint_file<-"../flagship/Phenotyping/UKBB_definitions_demo_TEST.csv"
-endpoint_file<-"../flagship/hunt_specific/HUNT_definitions_demo.csv"
+endpoint_file<-"/mnt/work/workbench/bwolford/hunt_flagship/hunt_specific/HUNT_definitions_demo.csv"
 ### note: editing seropositive in the definitions file to include M05.8 and .9 becuase not getting cases otherwise
 ###editing I9_CHD so we include I20.0
 master_file<-"/mnt/work/master/DATASET_20170512/SAMPLE_QC/Masterkey_DATASET.20170512.txt.gz"
@@ -245,9 +245,12 @@ hunt_file<-"/mnt/work/phenotypes/allin-phecode-2018_41492/kilde/hunt/2019 02 27 
 #do we have BMI for more than HUNT 3?
 
 ### impute DOB from birth year 
-set.seed(1234)
-hunt$DATE_OF_BIRTH<-impute_dob(as.Date(paste0(hunt$BirthYear+1,"01","01"),format='%Y%m%d'),age_years=0) #as.Date defaults to UTC
-hunt$DATE_OF_BIRTH<-as.POSIXct(hunt$DATE_OF_BIRTH)
+#set.seed(1234)
+#hunt$DATE_OF_BIRTH<-impute_dob(as.Date(paste0(hunt$BirthYear+1,"01","01"),format='%Y%m%d'),age_years=0) #as.Date defaults to UTC
+#hunt$DATE_OF_BIRTH<-as.POSIXct(hunt$DATE_OF_BIRTH)
+
+#let's use July 15 as birthday for everyone
+hunt$DATE_OF_BIRTH<-as.POSIXct(paste(sep="-",hunt$BirthYear,"07","15"))
 
 #identify start of follow up ie recruitment 
 hunt<-hunt %>% filter(!(is.na(`PartAg@NT1BLQ1`) & is.na(`PartAg@NT2BLQ1`) & is.na(`PartAg@NT3BLQ1`))) #drop people in hospital records not in HUNT
@@ -256,9 +259,9 @@ hunt$START_OF_FOLLOWUP<-ceiling_date(ymd(hunt$DATE_OF_BIRTH) + dyears(hunt$START
 
 #identify end of follow up 
 #last linking date (i.e. the last date when the person was still known to be alive) or with the date of death.
-#could use date that EHR was pulled
-last_date<-dat %>% group_by(ID) %>% mutate(max=max(DATE)) %>% select(ID,max) %>% unique()
+last_date<-dat %>% group_by(ID) %>% mutate(max=max(DATE,na.rm=TRUE)) %>% select(ID,max) %>% unique()
 hunt<-hunt %>% left_join(last_date,by=c("PID@108485"="ID")) %>% rename(END_OF_FOLLOWUP=max) %>% select(-Sex)
+#could use when EHR was pulled (2018 on file names, but 2020-08-01 is the last date, probably due to COVID)
 
 #identify genotyped samples
 fam<-fread(fam_file)
@@ -277,7 +280,7 @@ df<-left_join(ew, last_date,by="ID") %>%
   left_join(hunt,by=c("ID"="PID@108485")) %>% 
   right_join(fam,by=c("IID"="V1"))
 
-#delted RHEUM SERO POS doesn't exist,  "I9_THAORTANEUR","I9_ABAORTANEUR",  "E4_HYTHYNAS","G6_SLEEPAPNO",IPF"GE_STRICT","FE_STRICT","COVID"
+#missing  "I9_THAORTANEUR","I9_ABAORTANEUR",  "E4_HYTHYNAS","G6_SLEEPAPNO",IPF"GE_STRICT","FE_STRICT","COVID"
 
 ###get COVID-19 ICD codes from COVID HGI data, not in these files from the hospital
 
@@ -291,15 +294,16 @@ df<-df %>% mutate_at(all_of(date_columns),~as.Date(as.POSIXct(.x,origin="1970-01
 
 header<-c("ID","SEX","DATE_OF_BIRTH",	"PC1",	"PC2",	"PC3",	"PC4","PC5",	
           "PC6","PC7","PC8","PC9","PC10","ANCESTRY",
-          "C3_CANCER",	"C3_COLORECTAL",	
-          "C3_BREAST",	"T2D",	"C3_PROSTATE",	"I9_CHD",	"I9_SAH",	"C3_MELANOMA_SKIN",	"J10_ASTHMA",	"I9_HEARTFAIL_NS",	"I9_STR",	"G6_AD_WIDE",	
-          "BMI",	"T1D",	"I9_AF",	"N14_CHRONKIDNEYDIS",	"COVID",	"F5_DEPRESSIO",	"C3_BRONCHUS_LUNG",	"RHEUMA_SEROPOS_OTH",	"K11_IBD_STRICT",	"I9_VTE",	
-          "I9_THAORTANEUR",	"I9_ABAORTANEUR",	"COX_ARTHROSIS",	"KNEE_ARTHROSIS",	"M13_OSTEOPOROSIS",	"AUD_SWEDISH",	"E4_HYTHYNAS",	"E4_THYTOXGOITDIF",	"G6_SLEEPAPNO",	"IPF",	
-          "ILD",	"GOUT",	"H7_GLAUCOMA",	"G6_EPLEPSY",	"GE_STRICT",	"FE_STRICT",	"K11_APPENDACUT",	"C3_CANCER_DATE",	"C3_COLORECTAL_DATE",	"C3_BREAST_DATE",	"T2D_DATE",	"C3_PROSTATE_DATE",	
-          "I9_CHD_DATE",	"I9_SAH_DATE",	"C3_MELANOMA_SKIN_DATE",	"J10_ASTHMA_DATE",	"I9_HEARTFAIL_NS_DATE",	"I9_STR_DATE",	"G6_AD_WIDE_DATE",	"BMI_DATE",	"T1D_DATE",	"I9_AF_DATE",	"N14_CHRONKIDNEYDIS_DATE",	
-          "COVID_DATE",	"F5_DEPRESSIO_DATE",	"C3_BRONCHUS_LUNG_DATE",	"RHEUMA_SEROPOS_OTH_DATE",	"K11_IBD_STRICT_DATE",	"I9_VTE_DATE",	"I9_THAORTANEUR_DATE",	"I9_ABAORTANEUR_DATE",	"COX_ARTHROSIS_DATE",	
-          "KNEE_ARTHROSIS_DATE",	"M13_OSTEOPOROSIS_DATE",	"AUD_SWEDISH_DATE",	"E4_HYTHYNAS_DATE",	"E4_THYTOXGOITDIF_DATE",	"G6_SLEEPAPNO_DATE",	"IPF_DATE",	"ILD_DATE",	"GOUT_DATE",	"H7_GLAUCOMA_DATE",	"G6_EPLEPSY_DATE",	
-          "GE_STRICT_DATE",	"FE_STRICT_DATE",	"K11_APPENDACUT_DATE",	
+          "C3_CANCER", "C3_COLORECTAL", "C3_BREAST", "T2D", "C3_PROSTATE", "I9_CHD", "I9_SAH", "C3_MELANOMA_SKIN", 
+          "J10_ASTHMA", "I9_HEARTFAIL_NS", "I9_STR", "G6_AD_WIDE", "T1D", "I9_AF", "N14_CHRONKIDNEYDIS", "F5_DEPRESSIO", 
+          "C3_BRONCHUS_LUNG", "RHEUMA_SEROPOS_OTH", "K11_IBD_STRICT", "I9_VTE", "I9_THAORTANEUR", "I9_ABAORTANEUR", 
+          "COX_ARTHROSIS", "KNEE_ARTHROSIS", "M13_OSTEOPOROSIS", "AUD_SWEDISH", "E4_HYTHYNAS", "G6_SLEEPAPNO", "IPF", 
+          "ILD", "GOUT", "H7_GLAUCOMA", "G6_EPLEPSY", "GE_STRICT", "FE_STRICT", "K11_APPENDACUT", "COVID",
+          "C3_CANCER_DATE", "C3_COLORECTAL_DATE", "C3_BREAST_DATE", "T2D_DATE", "C3_PROSTATE_DATE", "I9_CHD_DATE", "I9_SAH_DATE", "C3_MELANOMA_SKIN_DATE", "J10_ASTHMA_DATE", 
+          "I9_HEARTFAIL_NS_DATE", "I9_STR_DATE", "G6_AD_WIDE_DATE", "T1D_DATE", "I9_AF_DATE", "N14_CHRONKIDNEYDIS_DATE", "F5_DEPRESSIO_DATE", "C3_BRONCHUS_LUNG_DATE", 
+          "RHEUMA_SEROPOS_OTH_DATE", "K11_IBD_STRICT_DATE", "I9_VTE_DATE", "I9_THAORTANEUR_DATE", "I9_ABAORTANEUR_DATE", "COX_ARTHROSIS_DATE", "KNEE_ARTHROSIS_DATE", 
+          "M13_OSTEOPOROSIS_DATE", "AUD_SWEDISH_DATE", "E4_HYTHYNAS_DATE", "G6_SLEEPAPNO_DATE", "IPF_DATE", "ILD_DATE", "GOUT_DATE", "H7_GLAUCOMA_DATE", "G6_EPLEPSY_DATE", 
+          "GE_STRICT_DATE", "FE_STRICT_DATE", "K11_APPENDACUT_DATE", "COVID_DATE",
           "START_OF_FOLLOWUP",	"END_OF_FOLLOWUP","BATCH",	"SMOKING",	"EDUCATION_97",	"EDUCATION_11")	
 names(df)[grep("^ID$",names(df))]<-"hospitalID" #need exact match
 names(df)[grep("IID",names(df))]<-"ID" #matches genetics data (n=69715)
@@ -308,16 +312,17 @@ names(df)[grep("Ancestry",names(df))]<-"ANCESTRY"
 names(df)[grep("Bmi",names(df))]<-"BMI"
 names(df)[grep("batch",names(df))]<-"BATCH"
 
+#factor with two levels 'male' and 'female' and 'female' is the reference.
 
 #replace NA in the binary phenotype columns with 0 for controls
 #can we assume that anyone who is genotyped but not in the EHR files is a control? or could they be missing from hospital records and should be NA?
-binary<-c("C3_CANCER",	"C3_COLORECTAL",	
-          "C3_BREAST",	"T2D",	"C3_PROSTATE",	"I9_CHD",	"I9_SAH",	"C3_MELANOMA_SKIN",	"J10_ASTHMA",	"I9_HEARTFAIL_NS",	"I9_STR",	"G6_AD_WIDE",	
-          "T1D",	"I9_AF",	"N14_CHRONKIDNEYDIS",	"COVID",	"F5_DEPRESSIO",	"C3_BRONCHUS_LUNG",	"RHEUMA_SEROPOS_OTH",	"K11_IBD_STRICT",	"I9_VTE",	
-          "I9_THAORTANEUR",	"I9_ABAORTANEUR",	"COX_ARTHROSIS",	"KNEE_ARTHROSIS",	"M13_OSTEOPOROSIS",	"AUD_SWEDISH",	"E4_HYTHYNAS",	"E4_THYTOXGOITDIF",	"G6_SLEEPAPNO",	"IPF",	
-          "ILD",	"GOUT",	"H7_GLAUCOMA",	"G6_EPLEPSY",	"GE_STRICT",	"FE_STRICT",	"K11_APPENDACUT")
+binary<-c("C3_CANCER", "C3_COLORECTAL", "C3_BREAST", "T2D", "C3_PROSTATE", "I9_CHD", "I9_SAH", "C3_MELANOMA_SKIN", 
+          "J10_ASTHMA", "I9_HEARTFAIL_NS", "I9_STR", "G6_AD_WIDE", "T1D", "I9_AF", "N14_CHRONKIDNEYDIS", "F5_DEPRESSIO", 
+          "C3_BRONCHUS_LUNG", "RHEUMA_SEROPOS_OTH", "K11_IBD_STRICT", "I9_VTE", "I9_THAORTANEUR", "I9_ABAORTANEUR", 
+          "COX_ARTHROSIS", "KNEE_ARTHROSIS", "M13_OSTEOPOROSIS", "AUD_SWEDISH", "E4_HYTHYNAS", "G6_SLEEPAPNO", "IPF", 
+          "ILD", "GOUT", "H7_GLAUCOMA", "G6_EPLEPSY", "GE_STRICT", "FE_STRICT", "K11_APPENDACUT", "COVID")
 binary<-binary[binary %in% names(df)] #what actually exists
-df2<-df %>% mutate_at(binary,~replace(.,is.na(.),0))
+df2<-df %>% mutate_at(binary,~replace(.,is.na(.),0)) #make controls if NA
 
 #make NA for males with breast cancer and females with prostate cancer, instead of controls
 df2<-df2 %>% mutate(C3_BREAST=ifelse(SEX==1,NA,C3_BREAST))
@@ -352,7 +357,7 @@ write.csv(format(age_df,digits=3),paste0(output_dir,"age_quartiles.csv"),row.nam
 
 ##### other summary stats for phenotypes
 p<-c("C3_CANCER","C3_COLORECTAL","C3_BREAST","T2D","C3_PROSTATE","I9_CHD","I9_SAH","C3_MELANOMA_SKIN","J10_ASTHMA","I9_HEARTFAIL_NS","I9_STR","G6_AD_WIDE","T1D","I9_AF","N14_CHRONKIDNEYDIS","COVID","F5_DEPRESSIO","C3_BRONCHUS_LUNG","RHEUMA_SEROPOS_OTH",
-     "K11_IBD_STRICT","I9_VTE","I9_THAORTANEUR","I9_ABAORTANEUR","COX_ARTHROSIS","KNEE_ARTHROSIS","M13_OSTEOPOROSIS","AUD_SWEDISH","E4_HYTHYNAS","E4_THYTOXGOITDIF","G6_SLEEPAPNO","IPF","ILD","GOUT","H7_GLAUCOMA","G6_EPLEPSY","GE_STRICT","FE_STRICT","K11_APPENDACUT")
+     "K11_IBD_STRICT","I9_VTE","I9_THAORTANEUR","I9_ABAORTANEUR","COX_ARTHROSIS","KNEE_ARTHROSIS","M13_OSTEOPOROSIS","AUD_SWEDISH","E4_HYTHYNAS","G6_SLEEPAPNO","IPF","ILD","GOUT","H7_GLAUCOMA","G6_EPLEPSY","GE_STRICT","FE_STRICT","K11_APPENDACUT")
 for (idx in 1:length(p)){
   print(p[idx])
   if(sum(is.na(pull(df3,p[idx])))==nrow(df3)){ #if entire case/control designation is NA then the phenotype is missing 
