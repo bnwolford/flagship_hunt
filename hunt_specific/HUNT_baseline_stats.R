@@ -18,7 +18,7 @@ birth_as_baseline<-FALSE #if you are using birth as the baseline, change to TRUE
 df<-fread(file_name)
 
 #if your SEX column is male/female/other you can comment this out, otherwise, replace 2 or 1 with the values you use for male/female
-df$SEX<-recode(df$SEX, `2`="female", `1`="male", .default = NA_character_)
+#df$SEX<-recode(df$SEX, `2`="female", `1`="male", .default = NA_character_)
 
 ####################
 #all 38 phenotypes
@@ -63,6 +63,10 @@ for (idx in 1:length(p)){
     n_control<-df %>% filter(get(p[idx])==0) %>% nrow()
     prev<-n_case/(n_case+n_control)*100
     
+    # of incident cases 
+    date_col<-paste0(p[idx],"_DATE")
+    inc_case<-df %>% filter(get(p[idx])==1 & get(date_col)>BASELINE) %>% nrow()
+        
     #age distribution at recruitment/baseline in CASES (yrs)
     tmp<-df %>% filter(get(p[idx])==1) %>% mutate(age=as.numeric((BASELINE-DATE_OF_BIRTH)/365.5))
     age_recruitment_median_cases<-median(tmp$age,na.rm=TRUE)
@@ -116,13 +120,13 @@ for (idx in 1:length(p)){
     female_perc_controls<-n_female_control/n_control*100
   }
   if (idx==1){
-    summary_stats_df<-data.frame(p[idx],n_case,n_control,prev,age_recruitment_median,age_recruitment_IQR,
+    summary_stats_df<-data.frame(p[idx],n_case,n_control,inc_case,prev,age_recruitment_median,age_recruitment_IQR,
                                  age_recruitment_median_cases,age_recruitment_IQR_cases,
                                  age_recruitment_median_controls,age_recruitment_IQR_controls,
                                  age_onset_median,age_onset_IQR,follow_up_median,follow_up_IQR,
                                  age_corr,sex_corr,n_female_case,n_female_control,female_perc_cases,female_perc_controls)
   } else{
-    summary_stats_df<-rbind(summary_stats_df,data.frame(p[idx],n_case,n_control,prev,age_recruitment_median,age_recruitment_IQR,
+    summary_stats_df<-rbind(summary_stats_df,data.frame(p[idx],n_case,n_control,n_incident_case, prev,age_recruitment_median,age_recruitment_IQR,
                                                               age_recruitment_median_cases,age_recruitment_IQR_cases,
                                                               age_recruitment_median_controls,age_recruitment_IQR_controls,
                                                               age_onset_median,age_onset_IQR,follow_up_median,follow_up_IQR,
@@ -134,7 +138,7 @@ for (idx in 1:length(p)){
 names(age_df)<-c("trait","X25","X50","X75")
 write.csv(format(age_df,digits=3),paste0(output_dir,biobank,"_age_quartiles.csv"),row.names=FALSE,quote=FALSE)
 
-names(summary_stats_df)<-c("trait","cases","controls","prevalence","age_recruitment_median","age_recruitment_IQR",
+names(summary_stats_df)<-c("trait","cases","controls","incident_cases","prevalence","age_recruitment_median","age_recruitment_IQR",
                                  "age_recruitment_median_cases","age_recruitment_IQR_cases",
                                  "age_recruitment_median_controls","age_recruitment_IQR_controls",
                                  "age_onset_median","age_onset_IQR","follow_up_median","follow_up_IQR","age_corr",
