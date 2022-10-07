@@ -312,8 +312,6 @@ names(df)[grep("Ancestry",names(df))]<-"ANCESTRY"
 names(df)[grep("Bmi",names(df))]<-"BMI"
 names(df)[grep("batch",names(df))]<-"BATCH"
 
-#factor with two levels 'male' and 'female' and 'female' is the reference.
-
 #replace NA in the binary phenotype columns with 0 for controls
 #can we assume that anyone who is genotyped but not in the EHR files is a control? or could they be missing from hospital records and should be NA?
 binary<-c("C3_CANCER", "C3_COLORECTAL", "C3_BREAST", "T2D", "C3_PROSTATE", "I9_CHD", "I9_SAH", "C3_MELANOMA_SKIN", 
@@ -333,6 +331,9 @@ columns<-header[!header %in% names(df2)]
 empty<-data.frame(matrix(nrow=nrow(df2), ncol = length(columns))) 
 names(empty)<-columns
 df3<-cbind(df2,empty) %>% select(header) #subset just to headers of interest 
+
+#factor with two levels 'male' and 'female' and 'female' is the reference.
+df$SEX<-recode_factor(df$SEX,`1`="male",`2`="female")
 
 #write file
 write.csv(df3,paste0(output_dir,'endpointsPhenoFormatHUNT.csv'),row.names=FALSE,quote=FALSE)
