@@ -51,7 +51,7 @@ for(i in 1:length(phenocols)){
   
   #Perform survival analysis
   survival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=pheno, na.action=na.exclude)
-  
+ 
   if(phenocols[i] != "C3_BREAST" & phenocols[i] != "C3_PROSTATE"){
     
     males <- subset(pheno, SEX=="male")
@@ -91,5 +91,6 @@ for(i in 1:length(phenocols)){
   }
   
 }
-
-write.csv(results, "/mnt/work/workbench/bwolford/intervene/2022_10_06/HRperSD_HUNT.csv")
+results<-data.frame(results)
+names(results)<-c("Phenotype",	"PRS",	"Sample",	"Controls",	"Cases",	"Beta",	"SE",	"Pval", "HR",	"Cipos",	"Cineg")
+write.csv(results, row.names=FALSE,"/mnt/work/workbench/bwolford/intervene/2022_10_06/HRperSD_HUNT.csv")
