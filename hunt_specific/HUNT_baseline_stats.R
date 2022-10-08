@@ -111,8 +111,7 @@ for (idx in 1:length(p)){
       sex_corr<-cor.test(pull(df,p[idx]),df$SEX_NUM,method="pearson")$estimate #positive is correlated with male
       sex_cor_ci<-cor.test(pull(df,p[idx]),df$SEX_NUM,method="pearson")$conf.int
     }
-    #n_female_case got NA in the baseline script. It looks like this `sum` function should have `na.rm = T` -- 
-    #  However, something in the script still seems wrong because female_prev_controls > 100 for breast cancer
+   
     #female percentage
     female<-df[df$SEX_NUM==0,]
     n_female_case<-nrow(df %>% filter(SEX_NUM==0 & get(p[idx])==1))
