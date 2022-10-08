@@ -397,9 +397,8 @@ names(summary_stats_cases_df)<-c("trait","cases","controls","prevalence","age_re
 write.csv(format(summary_stats_cases_df,digits=3),paste0(output_dir,"summary_stats_cases.csv"),row.names=FALSE,quote=FALSE)
 
 #################### files for the prspipeline
-setwd("~/intervene")
-df<-fread("endpointsWideFormatHUNT.csv")
-config<-fread("/mnt/scratch/brooke/prspipe/prspipe/config/studies_for_methods_comparison.tsv")
+setwd("~/intervene/2022_10_06")
+df<-fread("endpointsPhenoFormatHUNT.csv")
 phenos<-config$name
 phenos<-unique(unlist(strsplit(phenos,",")))
 
@@ -424,8 +423,7 @@ pheno_list<-c("HEIGHT","T1D","GOUT","URATE","I9_STR","G6_AD_WIDE","HBA1C","T2D",
 #dir.create("/home/bwolford/scratch/brooke/prspipe/prspipe/custom_input/hunt/phenotypes/")
 for (i in 1:length(pheno_list)){
   if (pheno_list[i] %in% names(df)) {
-    df2<-df %>% select(ID,pheno_list[i])
-    df2$FID<-df2$ID
+    df2<-df %>% select(ID,pheno_list[i]) %>% mutate(FID=ID) %>% relocate(pheno_list[i], .after = FID)
     fwrite(df2,paste0("/home/bwolford/scratch/brooke/prspipe/prspipe/custom_input/hunt/phenotypes/",config_p[i],".tsv"),quote=FALSE,sep="\t",col.names=FALSE,row.names=FALSE)
 }}
 
