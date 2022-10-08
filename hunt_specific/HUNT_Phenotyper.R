@@ -22,7 +22,7 @@ endpoint_file<-"/mnt/work/workbench/bwolford/hunt_flagship/hunt_specific/HUNT_de
 master_file<-"/mnt/work/master/DATASET_20170512/SAMPLE_QC/Masterkey_DATASET.20170512.txt.gz"
 bridge_file<-"/mnt/work/bridge/allin-phecode-2018_41492/PID@108485-PID@105118.sav"
 fam_file<-"/mnt/scratch/brooke/bcf/all.log.fam"
-output_dir="/mnt/work/workbench/bwolford/intervene/2022_10_06"
+output_dir="/mnt/work/workbench/bwolford/intervene/2022_10_06/"
 
 files<-list.files("/mnt/work/phenotypes/allin-phecode-2018_41492/kilde/hnt/",full.names=TRUE)
 files<- files[!grepl("etter",files)] #what is issue with that sav file?
@@ -333,7 +333,7 @@ names(empty)<-columns
 df3<-cbind(df2,empty) %>% select(header) #subset just to headers of interest 
 
 #factor with two levels 'male' and 'female' and 'female' is the reference.
-df$SEX<-recode_factor(df$SEX,`1`="male",`2`="female")
+df3$SEX<-recode_factor(df3$SEX,`1`="male",`2`="female")
 
 #write file
 write.csv(df3,paste0(output_dir,'endpointsPhenoFormatHUNT.csv'),row.names=FALSE,quote=FALSE)
@@ -403,11 +403,33 @@ config<-fread("/mnt/scratch/brooke/prspipe/prspipe/config/studies_for_methods_co
 phenos<-config$name
 phenos<-unique(unlist(strsplit(phenos,",")))
 
-#BMI
-#height
-#metabolites
+#read in the config file with info about phenotypes
+config<-fread("/home/bwolford/scratch/brooke/prspipe/prspipe/config/studies_for_methods_comparison.tsv")
+config_p<-unlist(strsplit(unlist(as.list(config$name)),","))
 
-pheno_list<-c("T2D","T1D","C3_BREAST","C3_PROSTATE","I9_STR","G6_AD_WIDE","GOUT","N14_CHRONKIDNEYDIS","RHEUMA_SEROPOS_OTH","K11_IBD_STRICT")
+#these should match the phenotype file and be in the same order as the config phenotype list
+pheno_list<-c("HEIGHT","T1D","GOUT","URATE","I9_STR","G6_AD_WIDE","HBA1C","T2D","BMI","T2D", 
+      "C3_BREAST","C3_PROSTATE","N14_CHRONKIDNEYDIS","CREATINEINE","RHEUMA_SEROPOS_OTH","K11_IBD_STRICT", 
+              "HDL","CREATININE","N14_CHRONKIDNEYDIS")
+
+#Place the phenotype files in custom_input/{target-name}/phenotypes/. 
+#Name them {phenotype}.tsv, where {phenotype} should match the entries in the name-column of the study sample-sheet, i.e ./custom_input/ukbb/phenotypes/T2D.tsv, ./custom_input/ukbb/phenotypes/BMI.tsv and so on. 
+#You may gzip these files to save space.
+#If more than one phenotype is listed in the name-column (separated by a comma), 
+#these need to be placed in separate files.          
+
+
+#Phenotypes should be placed in separate files with three tab-separated columns (no header): 
+#The family ID, the individual ID, and the Phenotype value 
+#dir.create("/home/bwolford/scratch/brooke/prspipe/prspipe/custom_input/hunt/phenotypes/")
+for (i in 1:length(pheno_list)){
+  if (pheno_list[i] %in% names(df)) {
+    df2<-df %>% select(ID,pheno_list[i])
+    df2$FID<-df2$ID
+    fwrite(df2,paste0("/home/bwolford/scratch/brooke/prspipe/prspipe/custom_input/hunt/phenotypes/",config_p[i],".tsv"),quote=FALSE,sep="\t",col.names=FALSE,row.names=FALSE)
+}}
+
+
 
 
 
