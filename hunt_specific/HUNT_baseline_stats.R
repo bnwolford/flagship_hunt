@@ -7,7 +7,7 @@ options(scipen=999)
 library(lubridate)
 
 ####### variables ######
-file_name<-"/mnt/work/workbench/bwolford/intervene/endpointsPhenoFormatHUNT.csv"
+file_name<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/endpointsPhenoFormatHUNT.csv"
 biobank<-"HUNT"
 output_dir<-"/home/bwolford/workbench/intervene/2022_10_06/" #keeping the final "/" is required
 #output_dir<-getwd()
@@ -65,7 +65,7 @@ for (idx in 1:length(p)){
     
     # of incident cases 
     date_col<-paste0(p[idx],"_DATE")
-    inc_case<-df %>% filter(get(p[idx])==1 & get(date_col)>BASELINE) %>% nrow()
+    n_incident_case<-df %>% filter(get(p[idx])==1 & get(date_col)>BASELINE) %>% nrow()
         
     #age distribution at recruitment/baseline in CASES (yrs)
     tmp<-df %>% filter(get(p[idx])==1) %>% mutate(age=as.numeric((BASELINE-DATE_OF_BIRTH)/365.5))
@@ -103,24 +103,25 @@ for (idx in 1:length(p)){
     age_corr<-cor.test(pull(df,p[idx]),tmp$age)$estimate #has to be age of recruitment because age of onset wouldn't have controls
     age_cor_ci<-cor.test(pull(df,p[idx]),tmp$age,method="pearson")$conf.int
     
-    tmp$SEX_NUM<-recode(df$SEX, female=0, male=1)
+    df$SEX_NUM<-recode(df$SEX, female=0, male=1)
     if (p[idx]=="C3_PROSTATE"|p[idx]=="C3_BREAST"){ #logic for sex-specific conditions
       sex_corr<-NA
       sex_corr_ci<-NA
     } else{
-      sex_corr<-cor.test(pull(df,p[idx]),tmp$SEX_NUM,method="pearson")$estimate #positive is correlated with male
-      sex_cor_ci<-cor.test(pull(df,p[idx]),tmp$SEX_NUM,method="pearson")$conf.int
+      sex_corr<-cor.test(pull(df,p[idx]),df$SEX_NUM,method="pearson")$estimate #positive is correlated with male
+      sex_cor_ci<-cor.test(pull(df,p[idx]),df$SEX_NUM,method="pearson")$conf.int
     }
-    
+    #n_female_case got NA in the baseline script. It looks like this `sum` function should have `na.rm = T` -- 
+    #  However, something in the script still seems wrong because female_prev_controls > 100 for breast cancer
     #female percentage
-    female<-tmp[tmp$SEX_NUM==0,]
-    n_female_case<-sum(pull(female,p[idx])[(pull(female,p[idx])==1)])
-    n_female_control<-length(pull(female,p[idx])[(pull(female,p[idx])==0)])
+    female<-df[df$SEX_NUM==0,]
+    n_female_case<-nrow(df %>% filter(SEX_NUM==0 & get(p[idx])==1))
+    n_female_control<-nrow(df %>% filter(SEX_NUM==0 & get(p[idx])==0))
     female_perc_cases<-n_female_case/n_case*100
     female_perc_controls<-n_female_control/n_control*100
   }
   if (idx==1){
-    summary_stats_df<-data.frame(p[idx],n_case,n_control,inc_case,prev,age_recruitment_median,age_recruitment_IQR,
+    summary_stats_df<-data.frame(p[idx],n_case,n_control,n_incident_case,prev,age_recruitment_median,age_recruitment_IQR,
                                  age_recruitment_median_cases,age_recruitment_IQR_cases,
                                  age_recruitment_median_controls,age_recruitment_IQR_controls,
                                  age_onset_median,age_onset_IQR,follow_up_median,follow_up_IQR,
