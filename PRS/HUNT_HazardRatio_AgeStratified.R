@@ -46,18 +46,18 @@ for(i in 1:length(phenocols)){
     print(prscols[i])
     
     #Read in phenotype file
-    pheno <- fread(input="path/to/pheno_file", select=c("ID","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",phenocols[i],paste0(phenocols[i],"_DATE"),"END_OF_FOLLOWUP"), data.table=FALSE)
+    pheno <- fread(input=pheno_file, select=c("ID","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",phenocols[i],paste0(phenocols[i],"_DATE"),"END_OF_FOLLOWUP"), data.table=FALSE)
     
     pheno[,paste0(phenocols[i],"_DATE")] <- as.Date(pheno[,paste0(phenocols[i],"_DATE")], origin = "1970-01-01")
     
     #Read in PRS scores
-    PRS <- fread(input=paste0("path/to/PRS/",prscols[i],"_PRS.sscore"), data.table=FALSE)
+    PRS <- fread(input=paste0(prs_path,prscols[i],"_PRS.sscore"), data.table=FALSE)
     
     #Subset columns to the IDs and score only. Note: columns FID or IID may be redundant and can be removed if necessary. Kept in to avoid bugs.
     PRS <- PRS[,c("#FID","IID","SCORE1_SUM")]
     
     #Rename ID column to the name of the ID column in the phenotype file
-    colnames(PRS) <- c("ENTER_ID", "ENTER_ID", paste0(prscols[i],"_prs"))
+    colnames(PRS) <- c(ID1, ID2, paste0(prscols[i],"_prs"))
     
     #left_join to the phenotype file
     pheno <- left_join(pheno, PRS)
@@ -67,7 +67,7 @@ for(i in 1:length(phenocols)){
     #Subset to those of european ancestry/those that have principal components calculated for EUROPEAN ancestry, i.e. within ancestry principal components, not global genetic principal components.
     #As we have been unable to use the standardised method for computing ancestry, if you have this information available from your centralised QC please use this. 
     #Feel free to subset using your own code: only provided as a reminder.
-    pheno <- subset(pheno, ANCESTRY=='EUR')
+    #pheno <- subset(pheno, ANCESTRY=='EUR')
     
     #Assign PRS into percentiles
     q <- quantile(pheno[[paste0(prscols[i],"_prs")]], probs=c(p,rev(1-p)))
@@ -101,7 +101,7 @@ for(i in 1:length(phenocols)){
       print(j)
       
       #Perform survival analysis
-      survival <- coxph(as.formula(paste0("Surv(tstart, AGE, event) ~ ",prscols[i],"_group + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10")), data=pheno_split_sub, na.action=na.exclude, control=coxph.control(iter.max=100))
+      survival <- coxph(as.formula(paste0("Surv(tstart, AGE, event) ~ ",prscols[i],"_group +",covariates)), data=pheno_split_sub, na.action=na.exclude, control=coxph.control(iter.max=100))
       
       controls <- table(pheno_split_sub[[paste0(prscols[i],"_group")]], pheno_split_sub[["event"]])[2:(2*length(p)-1),1]
       cases <- if(sum(nrow(pheno_split_sub[pheno_split_sub[["event"]]==0,])) == length(pheno_split_sub[["event"]])){ 
@@ -146,4 +146,4 @@ for(i in 1:length(phenocols)){
   }
 }
 
-write.csv(results, "file/path/to/output/HR_AgeStratified_[ENTER_BIOBANK_NAME].csv")
+write.csv(results, paste0(output_dir,"HR_AgeStratified_",biobank_name,".csv"))

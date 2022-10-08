@@ -17,18 +17,18 @@ for(i in 1:length(phenocols)){
   print(prscols[i])
   
   #Read in phenotype file
-  pheno <- fread(input="/mnt/work/workbench/bwolford/intervene/2022_10_06/endpointsPhenoFormatHUNT.csv", select=c("ID","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",phenocols[i],paste0(phenocols[i],"_DATE"),"SEX","END_OF_FOLLOWUP"), data.table=FALSE)
+  pheno <- fread(input=pheno_file, select=c("ID","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",phenocols[i],paste0(phenocols[i],"_DATE"),"SEX","END_OF_FOLLOWUP"), data.table=FALSE)
   
   pheno[,paste0(phenocols[i],"_DATE")] <- as.Date(pheno[,paste0(phenocols[i],"_DATE")], origin = "1970-01-01")
   
   #Read in PRS scores
-  PRS <- fread(input=paste0("/home/bwolford/scratch/brooke/2022_10_07_scores/",prscols[i],"_PRS.sscore"), data.table=FALSE)
+  PRS <- fread(input=paste0(prs_path,prscols[i],"_PRS.sscore"), data.table=FALSE)
   
   #Subset columns to the IDs and score only. Note: columns FID or IID may be redundant and can be removed if necessary. Kept in to avoid bugs.
   PRS <- PRS[,c("#FID","IID","SCORE1_SUM")]
     
   #Rename ID column to the name of the ID column in the phenotype file
-  colnames(PRS) <- c("ID", "IID", paste0(prscols[i],"_prs"))
+  colnames(PRS) <- c(ID1, ID2, paste0(prscols[i],"_prs"))
   
   #left_join to the phenotype file
   pheno <- left_join(pheno, PRS)
@@ -50,15 +50,15 @@ for(i in 1:length(phenocols)){
   pheno$AGE <- ifelse(pheno$AGE > 80, 80, pheno$AGE)
   
   #Perform survival analysis
-  survival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=pheno, na.action=na.exclude)
+  survival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs +",covariates)), data=pheno, na.action=na.exclude)
  
   if(phenocols[i] != "C3_BREAST" & phenocols[i] != "C3_PROSTATE"){
     
     males <- subset(pheno, SEX=="male")
     females <- subset(pheno, SEX=="female")
     
-    malesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=males, na.action=na.exclude)
-    femalesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=females, na.action=na.exclude)
+    malesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs +",covariates)), data=males, na.action=na.exclude)
+    femalesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs +",covariates)), data=females, na.action=na.exclude)
     
     #Extract hazard ratios, betas, standard errors and p-vals
     phenotype <- rep(phenocols[i],3)
@@ -93,4 +93,4 @@ for(i in 1:length(phenocols)){
 }
 results<-data.frame(results)
 names(results)<-c("Phenotype",	"PRS",	"Sample",	"Controls",	"Cases",	"Beta",	"SE",	"Pval", "HR",	"Cipos",	"Cineg")
-write.csv(results, row.names=FALSE,"/mnt/work/workbench/bwolford/intervene/2022_10_06/HRperSD_HUNT.csv")
+write.csv(results, row.names=FALSE,paste0(output_dir,"HRperSD_",biobank_name,".csv"))

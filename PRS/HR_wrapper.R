@@ -7,16 +7,31 @@ ID1<-"ID"
 ID2<-"IID"
 covariates<-"PC1 + PC2 + PC3 + PC4 + PC5"
 biobank_name<-"HUNT"
-output_dirt<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/"
 #NOTE, data must already be subsetted by ancestry
 #paths must include last backslash
   
-source(paste0(script_path,"HUNT_HazardRatio_AgeandSexStratified.R"))
-source(paste0(script_path,"HUNT_HazardRatio_AgeStratified.R"))
-source(paste0(script_path,"HUNT_HazardRatio_FullSample.R"))
-source(paste0(script_path,"HUNT_HazardRatioperSD_AgeandSexStratified.R"))
-source(paste0(script_path,"HUNT_HazardRatioperSD_AgeStratified.R"))
 source(paste0(script_path, "HUNT_HazardRatioperStandardDeviation.R"))
+print("HazardRatioperStandardDeviation.R finished running")
+
+source(paste0(script_path,"HUNT_HazardRatio_AgeStratified.R"))
+print("HazardRatio_AgeStratified finished running")
+
+source(paste0(script_path,"HUNT_HazardRatio_AgeandSexStratified.R"))
+print("HazardRatio_AgeandSexStratified.R finished running")
+
+source(paste0(script_path,"HUNT_HazardRatio_FullSample.R"))
+print("HUNT_HazardRatio_FullSample.R finished running")
+
+source(paste0(script_path,"HUNT_HazardRatioperSD_AgeandSexStratified.R"))
+print("HUNT_HazardRatioperSD_AgeandSexStratified.R finished running")
+
+source(paste0(script_path,"HUNT_HazardRatioperSD_AgeStratified.R"))
+print("HUNT_HazardRatioperSD_AgeStratified.R finished running")
+
 source(paste0(script_path, "HUNT_HazardRatio_SexInteraction.R"))
+print("HUNT_HazardRatio_SexInteraction.R finished running")
+
 source(paste0(script_path, "HUNT_HazardRatio_SexStratified.R"))
+print("HUNT_HazardRatio_SexStratified.R finished running")
 
