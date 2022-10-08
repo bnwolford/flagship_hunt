@@ -28,7 +28,7 @@ for(i in 1:length(phenocols)){
   PRS <- PRS[,c("#FID","IID","SCORE1_SUM")]
     
   #Rename ID column to the name of the ID column in the phenotype file
-  colnames(PRS) <- c("ENTER_ID", "ENTER_ID", paste0(prscols[i],"_prs"))
+  colnames(PRS) <- c("ID", "IID", paste0(prscols[i],"_prs"))
   
   #left_join to the phenotype file
   pheno <- left_join(pheno, PRS)
@@ -38,7 +38,7 @@ for(i in 1:length(phenocols)){
   #Subset to those of european ancestry/those that have principal components calculated for EUROPEAN ancestry, i.e. within ancestry principal components, not global genetic principal components.
   #As we have been unable to use the standardised method for computing ancestry, if you have this information available from your centralised QC please use this. 
   #Feel free to subset using your own code: only provided as a reminder.
-  pheno <- subset(pheno, ANCESTRY=='EUR')
+  #pheno <- subset(pheno, ANCESTRY=='EUR')
   
   pheno[[paste0(prscols[i],"_prs")]] <- scale(pheno[[paste0(prscols[i],"_prs")]])
   
@@ -58,7 +58,7 @@ for(i in 1:length(phenocols)){
     females <- subset(pheno, SEX=="female")
     
     malesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=males, na.action=na.exclude)
-    femalesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5"")), data=females, na.action=na.exclude)
+    femalesurvival <- coxph(as.formula(paste0("Surv(AGE,",phenocols[i],") ~ ",prscols[i],"_prs + PC1 + PC2 + PC3 + PC4 + PC5")), data=females, na.action=na.exclude)
     
     #Extract hazard ratios, betas, standard errors and p-vals
     phenotype <- rep(phenocols[i],3)
