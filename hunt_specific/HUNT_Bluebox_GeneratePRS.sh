@@ -7,7 +7,7 @@
 
 pheno=$1
 output=/home/bwolford/bluebox/results
-score_directory=/home/bwolford/bluebox/data/
+score_directory=/home/bwolford/bluebox/data
 frequency_directory=/home/bwolford/bluebox/data
 snplist_directory=/home/bwolford/bluebox/hunt_specific
 genotype_directory=/home/bwolford/bluebox/data
@@ -17,7 +17,7 @@ ${plink_path} \
 --bfile ${genotype_directory}/all.log \
 --extract ${snplist_directory}/snplist_hg19_varid \
 --read-freq ${frequency_directory}/all.frq \
---score ${score_directory}/${pheno_i}_megaPRS_scores_hg[19/38].txt.gz 1 2 5 header cols=+scoresums list-variants \
+--score ${score_directory}/${pheno}_megaPRS_scores_hg19_varid.txt.gz 6 2 5 header cols=+scoresums list-variants \
 --out ${output}/${pheno}_PRS
 
 
