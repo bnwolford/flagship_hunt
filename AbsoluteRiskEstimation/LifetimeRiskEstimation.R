@@ -2,15 +2,26 @@
 
 # Points to edit - Full Sample:
 #   * Lines 41 and 42 - Subset to diseases included in the analysis of your biobank
+bb_gbd_phenos <- c("Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Breast cancer", "Ischemic heart disease", "Colon and rectum cancer", "Idiopathic epilepsy", "Gout", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Malignant skin melanoma", "Prostate cancer", "Rheumatoid arthritis", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
+bb_hr_phenos <- c("K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "C3_BREAST", "I9_CHD", "C3_COLORECTAL", "G6_EPLEPSY", "GOUT", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "C3_MELANOMA_SKIN", "C3_PROSTATE", "RHEUMA_SEROPOS_OTH", "T2D", "ILD", "C3_BRONCHUS_LUNG")
+#remove T1D and all cancers for HUNT
+#assumes same phenotypes for all analyses below
+
 #   * Lines 49 and 50 - Enter file path and subset location to the country of interest
 #   * Lines 53 and 54 - Enter file path and subset location to the country of interest
 #   * Lines 77 and 78 - Enter file path and subset location to the country of interest
 #   * Lines 81 and 82 - Enter file path and subset location to the country of interest
 #   * Lines 97 and 98 - Enter file path and subset location to the country of interest
 #   * Lines 100 and 101 - Enter file path and subset location to the country of interest
+country<-"Norway"
+path<-"/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/" #must have final backslash
+
 #   * Line 142 - Enter file path
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/HR_FullSample_HUNT.csv" #must go straight to csv
 #   * Line 215 - Enter file path and biobank name
 #   * Line 233 - Enter file path and biobank name
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/" #must have final backslash
+biobank<-"HUNT"
 
 # Points to edit - Sex Stratified Samples:
 #   * Lines 244 and 245 - Subset to diseases included in the analysis of your biobank
@@ -18,6 +29,7 @@
 #   * Line 284 and 286 - Enter file path and subset location to the country of interest
 #   * Line 302 and 306 - Enter file path and subset location to the country of interest
 #   * Line 335 - Enter file path
+sex_strat_path<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/HR"
 #   * Line 408 - Enter file path and biobank name
 #   * Line 425 - Enter file path and biobank name
 
@@ -30,6 +42,7 @@
 #   * Line 492 and 493 - Enter file path and subset location to the country of interest
 #   * Line 495 and 496 - Enter file path and subset location to the country of interest
 #   * Line 537 _ Enter file path
+age_strat_path<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/HR"
 #   * Line 609 - Enter file path and biobank name
 #   * Line 627 - Enter file path and biobank name
 
@@ -38,20 +51,20 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 
-gbd_phenos <- c("Total cancers", "Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Breast cancer", "Ischemic heart disease", "Colon and rectum cancer", "Idiopathic epilepsy", "Gout", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Malignant skin melanoma", "Prostate cancer", "Rheumatoid arthritis", "Diabetes mellitus type 1", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
-hr_phenos <- c("C3_CANCER", "K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "C3_BREAST", "I9_CHD", "C3_COLORECTAL", "G6_EPLEPSY", "GOUT", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "C3_MELANOMA_SKIN", "C3_PROSTATE", "RHEUMA_SEROPOS_OTH", "T1D", "T2D", "ILD", "C3_BRONCHUS_LUNG")
+gbd_phenos <- bb_gbd_phenos
+hr_phenos <- bb_hr_phenos
 
 for(j in 1:length(gbd_phenos)){
   
   print(gbd_phenos[j])
   
   #Read in GBD incidence data 
-  incidence <- fread("/enter/file/path/for/GBD_Incidence.csv", data.table=FALSE)
-  incidence <- subset(incidence, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  incidence <- fread(paste0(path,"GBD_Incidence.csv"), data.table=FALSE)
+  incidence <- subset(incidence, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   incidence$val <- as.numeric(incidence$val)
   
-  bcpc_incidence <- fread("/enter/file/path/for/BreastCancerProstateCancer_Incidence.csv", data.table=FALSE)
-  bcpc_incidence <- subset(bcpc_incidence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location=="ENTER_COUNTRY")
+  bcpc_incidence <- fread(paste0(path,"BreastCancerProstateCancer_Incidence.csv"), data.table=FALSE)
+  bcpc_incidence <- subset(bcpc_incidence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location==country)
   bcpc_incidence$val <- as.numeric(bcpc_incidence$val)
   
   incidence <- rbind(incidence, bcpc_incidence)
@@ -74,12 +87,12 @@ for(j in 1:length(gbd_phenos)){
   incidence <- cbind(incidence, population)
   incidence <- incidence[,c("location","age","cause","metric","population","incidence")]
   
-  prevalence <- fread("/enter/file/path/for/GBD_Prevalence.csv", data.table=FALSE)
-  prevalence <- subset(prevalence, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  prevalence <- fread(paste0(path,"GBD_Prevalence.csv"), data.table=FALSE)
+  prevalence <- subset(prevalence, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   prevalence$val <- as.numeric(prevalence$val)
   
-  bcpc_prevalence <- fread("/enter/file/path/for/BreastCancerProstateCancer_Prevalence.csv", data.table=FALSE)
-  bcpc_prevalence <- subset(bcpc_prevalence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location=="ENTER_COUNTRY")
+  bcpc_prevalence <- fread(paste0(path,"BreastCancerProstateCancer_Prevalence.csv"), data.table=FALSE)
+  bcpc_prevalence <- subset(bcpc_prevalence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location==country)
   bcpc_prevalence$val <- as.numeric(bcpc_prevalence$val)
   
   prevalence <- rbind(prevalence, bcpc_prevalence)
@@ -94,11 +107,11 @@ for(j in 1:length(gbd_phenos)){
   incidence <- left_join(incidence, prevalence)
   
   #Use all cause and cause specific mortality incidence rates to calculate the competing risk of death during the age interval
-  mortality <- fread("/enter/file/path/for/GBD_Mortality.csv", data.table=FALSE)
-  mortality <- subset(mortality, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  mortality <- fread(paste0(path,"GBD_Mortality.csv"), data.table=FALSE)
+  mortality <- subset(mortality, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   
-  bcpc_mortality <- fread("/enter/file/path/for/BreastCancerProstateCancer_Mortality.csv", data.table=FALSE)
-  bcpc_mortality <- subset(bcpc_mortality, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer") | ((sex=="Male" | sex=="Female") & cause=="All causes")) & location=="ENTER_COUNTRY")
+  bcpc_mortality <- fread(paste0(path,"BreastCancerProstateCancer_Mortality.csv"), data.table=FALSE)
+  bcpc_mortality <- subset(bcpc_mortality, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer") | ((sex=="Male" | sex=="Female") & cause=="All causes")) & location==country)
   
   mortality <- rbind(mortality, bcpc_mortality)
   
@@ -135,14 +148,13 @@ for(j in 1:length(gbd_phenos)){
   incidence <- subset(incidence, age!="All Ages" & age!="80 to 84" & age!="85 to 89" & age!="90 to 94" & age!="95 plus")
   
   #######################################################################################################################################################################################
-  
   #Hazard Ratios
-  
+
   #Read in the hazard ratios and allocate to variables...
-  hazrats <- fread("/enter/file/path/for/HazardRatios_FullSample", data.table = FALSE)
-  hazrats <- hazrats[,-1]
-  colnames(hazrats) <- c("phenotype", "prs", "group", "beta", "se", "pval", "HR", "CIpos", "CIneg")
+  hazrats <- fread(full_HR_path, data.table = FALSE)
+  colnames(hazrats) <- c("phenotype","prs", "group","controls","cases", "beta", "se", "pval", "HR", "CIpos", "CIneg")
   hazrats <- subset(hazrats, phenotype==hr_phenos[j])
+
   
   #Hazard Ratios
   hr01 <- hazrats[1,"HR"]
@@ -184,7 +196,7 @@ for(j in 1:length(gbd_phenos)){
   incidence$i11 <- incidence$i6 * hr11
   
   ###################################################
-  
+
   lifetimerisk <- data.frame(NULL)
   for(i in 1:11){
     #Calculate hazard
@@ -212,7 +224,7 @@ for(j in 1:length(gbd_phenos)){
   lifetimerisk$Age <- factor(lifetimerisk$Age, levels=c("1 to 4","5 to 9","10 to 14","15 to 19","20 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79"))
   lifetimerisk$Group <- factor(lifetimerisk$Group, levels=c("Group1","Group2","Group3","Group4","Group5","Group6","Group7","Group8","Group9","Group10","Group11"))
   
-  write.csv(lifetimerisk, paste0("/enter/file/path/",hr_phenos[j],"_LifetimeRisk_ENTER_BIOBANK_NAME.csv"))
+  write.csv(lifetimerisk, paste0(output_dir,hr_phenos[j],"_LifetimeRisk_",biobank,".csv"))
   
   #Not considering confidence intervals
   ggplot(lifetimerisk, aes(Age, LifetimeRisk, color=Group, group=Group)) +
@@ -230,7 +242,7 @@ for(j in 1:length(gbd_phenos)){
           axis.text.x = element_text(size = 12, angle=-90, hjust=0),
           axis.title.y = element_text(size = 18),
           axis.text.y = element_text(size = 16))
-  ggsave(paste0("/enter/file/path/",hr_phenos[j],"_LifetimeRisk_ENTER_BIOBANK_NAME.png"), height=10 , width=10)
+  ggsave(paste0(output_dir,hr_phenos[j],"_LifetimeRisk_",biobank,".png"), height=10 , width=10)
   
 }
 
@@ -241,8 +253,8 @@ for(j in 1:length(gbd_phenos)){
 
 #Stratified by sex
 
-gbd_phenos <- c("Total cancers", "Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Ischemic heart disease", "Colon and rectum cancer", "Idiopathic epilepsy", "Gout", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Malignant skin melanoma", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
-hr_phenos <- c("C3_CANCER", "K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "I9_CHD", "C3_COLORECTAL", "G6_EPLEPSY", "GOUT", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "C3_MELANOMA_SKIN", "T2D", "ILD", "C3_BRONCHUS_LUNG")
+gbd_phenos <- bb_gbd_phenos
+hr_phenos <- bb_hr_phenos
 
 for(j in 1:length(gbd_phenos)){
   
@@ -253,10 +265,10 @@ for(j in 1:length(gbd_phenos)){
     print(k)
     
     #Incidence data - basic pre-processing
-    incidence <- fread("/enter/file/path/for/Sex_Stratified_Incidence_GBD.csv", data.table=FALSE)
+    incidence <- fread(paste0(path,"Sex_Stratified_Incidence_GBD.csv"), data.table=FALSE)
     
     #Incidence data to be replaced with that for males and females for prostate cancer and breast cancer respectively. Came from a separate dataset to reduce size of the full dataset. 
-    incidence <- subset(incidence, sex==k & cause==gbd_phenos[j] & location=="ENTER COUNTRY")
+    incidence <- subset(incidence, sex==k & cause==gbd_phenos[j] & location==country)
     incidence <- incidence[,c("location","age","cause","metric","val")]
     
     incidence$val <- as.numeric(incidence$val)
@@ -281,9 +293,9 @@ for(j in 1:length(gbd_phenos)){
     incidence <- incidence[,c("location","age","cause","metric","incidence","population")]
     
     #Prevalence - use to calculate hazard (incidence/(1-prevalence)) - The code is equivalent to that defined for incidence. 
-    prevalence <- fread("/enter/file/path/for/Sex_Stratified_Prevalence_GBD.csv", data.table=FALSE)
+    prevalence <- fread(paste0(path,"Sex_Stratified_Prevalence_GBD.csv"), data.table=FALSE)
     
-    prevalence <- subset(prevalence, sex==k & cause==gbd_phenos[j] & location=="ENTER_COUNTRY")
+    prevalence <- subset(prevalence, sex==k & cause==gbd_phenos[j] & location==country)
     prevalence <- prevalence[,c("location","age","cause","metric","val")]
     
     ##Subset to Rate only as no longer require absolute number
@@ -299,11 +311,11 @@ for(j in 1:length(gbd_phenos)){
     incidence <- left_join(incidence, prevalence)
     
     #Calculate age specific and disease specific mortality
-    mortality <- fread("/enter/file/path/for/Sex_Stratified_Mortality_GBD", data.table=FALSE)
+    mortality <- fread(paste0(path,"Sex_Stratified_Mortality_GBD.csv"), data.table=FALSE)
     
     mortality <- mortality[,c("location","sex","age","cause","metric","val")]
     
-    mortality <- subset(mortality, sex==k & (cause==gbd_phenos[j] | cause=="All causes") & location=="ENTER_COUNTRY")
+    mortality <- subset(mortality, sex==k & (cause==gbd_phenos[j] | cause=="All causes") & location==country)
     
     #Separate the current dataset into all cause and cause specific mortality so that the table can be converted into a wide format. 
     all_cause_mortality <- subset(mortality, cause=="All causes" & metric=="Rate")
@@ -434,19 +446,19 @@ for(j in 1:length(gbd_phenos)){
 
 #Age stratification results
 
-gbd_phenos <- c("Total cancers", "Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Breast cancer", "Ischemic heart disease", "Idiopathic epilepsy", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
-hr_phenos <- c("C3_CANCER", "K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "C3_BREAST", "I9_CHD", "G6_EPLEPSY", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "T2D", "ILD", "C3_BRONCHUS_LUNG")
+bb_gbd_phenos <- c("Total cancers", "Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Breast cancer", "Ischemic heart disease", "Idiopathic epilepsy", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
+bb_hr_phenos <- c("C3_CANCER", "K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "C3_BREAST", "I9_CHD", "G6_EPLEPSY", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "T2D", "ILD", "C3_BRONCHUS_LUNG")
 
 for(j in 1:length(gbd_phenos)){
   
   print(gbd_phenos[j])
   #Read in GBD incidence data 
-  incidence <- fread("/enter/file/path/for/GBD_Incidence.csv", data.table=FALSE)
-  incidence <- subset(incidence, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  incidence <- fread(paste0(path,"/GBD_Incidence.csv"), data.table=FALSE)
+  incidence <- subset(incidence, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   incidence$val <- as.numeric(incidence$val)
   
-  bcpc_incidence <- fread("/enter/file/path/for/BreastCancerProstateCancer_Incidence.csv", data.table=FALSE)
-  bcpc_incidence <- subset(bcpc_incidence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location=="ENTER_COUNTRY")
+  bcpc_incidence <- fread(paste0(path,"BreastCancerProstateCancer_Incidence.csv"), data.table=FALSE)
+  bcpc_incidence <- subset(bcpc_incidence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location==country)
   bcpc_incidence$val <- as.numeric(bcpc_incidence$val)
   
   incidence <- rbind(incidence, bcpc_incidence)
@@ -469,12 +481,12 @@ for(j in 1:length(gbd_phenos)){
   incidence <- cbind(incidence, population)
   incidence <- incidence[,c("location","age","cause","metric","population","incidence")]
   
-  prevalence <- fread("/enter/file/path/for/GBD_Prevalence.csv", data.table=FALSE)
-  prevalence <- subset(prevalence, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  prevalence <- fread(paste0(path,"GBD_Prevalence.csv"), data.table=FALSE)
+  prevalence <- subset(prevalence, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   prevalence$val <- as.numeric(prevalence$val)
   
-  bcpc_prevalence <- fread("/enter/file/path/for/BreastCancerProstateCancer_Prevalence.csv", data.table=FALSE)
-  bcpc_prevalence <- subset(bcpc_prevalence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location=="ENTER_COUNTRY")
+  bcpc_prevalence <- fread(path,"BreastCancerProstateCancer_Prevalence.csv", data.table=FALSE)
+  bcpc_prevalence <- subset(bcpc_prevalence, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer")) & location==country)
   bcpc_prevalence$val <- as.numeric(bcpc_prevalence$val)
   
   prevalence <- rbind(prevalence, bcpc_prevalence)
@@ -489,11 +501,11 @@ for(j in 1:length(gbd_phenos)){
   incidence <- left_join(incidence, prevalence)
   
   #Use all cause and cause specific mortality incidence rates to calculate the competing risk of death during the age interval
-  mortality <- fread("/enter/file/path/for/GBD_Mortality.csv", data.table=FALSE)
-  mortality <- subset(mortality, cause!="Breast cancer" & cause!="Prostate cancer" & location=="ENTER_COUNTRY")
+  mortality <- fread(paste0(path,"GBD_Mortality.csv"), data.table=FALSE)
+  mortality <- subset(mortality, cause!="Breast cancer" & cause!="Prostate cancer" & location==country)
   
-  bcpc_mortality <- fread("/enter/file/path/for/GBD_Data/BreastCancerProstateCancer_Mortality.csv", data.table=FALSE)
-  bcpc_mortality <- subset(bcpc_mortality, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer") | ((sex=="Male" | sex=="Female") & cause=="All causes")) & location=="ENTER_COUNTRY")
+  bcpc_mortality <- fread(paste0(path,"BreastCancerProstateCancer_Mortality.csv"), data.table=FALSE)
+  bcpc_mortality <- subset(bcpc_mortality, ((sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer") | ((sex=="Male" | sex=="Female") & cause=="All causes")) & location==country)
   
   mortality <- rbind(mortality, bcpc_mortality)
   
@@ -534,7 +546,7 @@ for(j in 1:length(gbd_phenos)){
   #Hazard Ratios 
   
   #Read in the hazard ratios and allocate to variables...
-  hazrats <- fread(paste0("/enter/file/path/",hr_phenos[j],"_Age_Specific_Hazards.csv"), data.table = FALSE)
+  hazrats <- fread(paste0(age_strat_path), data.table = FALSE)
   hazrats <- hazrats[,-1]
   colnames(hazrats) <- c("Age","Beta","HR","Group")
   
@@ -606,7 +618,7 @@ for(j in 1:length(gbd_phenos)){
   lifetimerisk$Age <- factor(lifetimerisk$Age, levels=c("1 to 4","5 to 9","10 to 14","15 to 19","20 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79"))
   lifetimerisk$Group <- factor(lifetimerisk$Group, levels=c("Group1","Group2","Group3","Group4","Group5","Group6","Group7","Group8","Group9","Group10","Group11"))
   
-  write.csv(lifetimerisk, paste0("/enter/file/path/",hr_phenos[j],"_LifetimeRisk_AgeStratification_ENTER_BIOBANK_NAME.csv"))
+  write.csv(lifetimerisk, paste0(output_dir,hr_phenos[j],"_LifetimeRisk_AgeStratification_",biobank,".csv"))
   
   #Not considering confidence intervals
   ggplot(lifetimerisk, aes(Age, LifetimeRisk, color=Group, group=Group)) +
@@ -624,6 +636,6 @@ for(j in 1:length(gbd_phenos)){
           axis.text.x = element_text(size = 12, angle=-90, hjust=0),
           axis.title.y = element_text(size = 18),
           axis.text.y = element_text(size = 16))
-  ggsave(paste0("/enter/file/path/",hr_phenos[j],"_LifetimeRisk_AgeStratification_ENTER_BIOBANK_NAME.png"), height=10 , width=10)
+  ggsave(paste0(output_dir,hr_phenos[j],"_LifetimeRisk_AgeStratification_",biobank,".png"), height=10 , width=10)
   
 }
