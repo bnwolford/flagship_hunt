@@ -5,12 +5,16 @@ pheno_file="/mnt/work/workbench/bwolford/intervene/2022_10_06/endpointsPhenoForm
 prs_path="/home/bwolford/scratch/brooke/2022_10_07_scores/"
 ID1<-"ID"
 ID2<-"IID"
-covariates<-"PC1 + PC2 + PC3 + PC4 + PC5"
+covariates<-"PC1 + PC2 + PC3 + PC4 + PC5 + BATCH"
+#covariates<- "PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10"
 biobank_name<-"HUNT"
 output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/"
+custom_covar<-c("BATCH")
 #NOTE, data must already be subsetted by ancestry
 #paths must include last backslash
   
+#instructions in readme.md https://github.com/intervene-EU-H2020/flagship
+
 source(paste0(script_path, "HUNT_HazardRatioperStandardDeviation.R"))
 print("HazardRatioperStandardDeviation.R finished running")
 

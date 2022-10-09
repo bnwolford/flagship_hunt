@@ -44,7 +44,7 @@ for(i in 1:length(phenocols)){
     print(prscols[i])
     
     #Read in phenotype file
-    pheno <- fread(input=pheno_file, select=c("ID","SEX","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",phenocols[i],paste0(phenocols[i],"_DATE"),"END_OF_FOLLOWUP"), data.table=FALSE)
+    pheno <- fread(input=pheno_file, select=c("ID","SEX","DATE_OF_BIRTH","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10",custom_covar, phenocols[i],paste0(phenocols[i],"_DATE"),"END_OF_FOLLOWUP"), data.table=FALSE)
     
     pheno[,paste0(phenocols[i],"_DATE")] <- as.Date(pheno[,paste0(phenocols[i],"_DATE")], origin = "1970-01-01")
     
@@ -103,7 +103,7 @@ for(i in 1:length(phenocols)){
         print(j)
         
         #Perform survival analysis
-        survival <- coxph(as.formula(paste0("Surv(tstart, AGE, event) ~ ",prscols[i],"_group + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10")), data=pheno_split_sub, na.action=na.exclude, control=coxph.control(iter.max=100))
+        survival <- coxph(as.formula(paste0("Surv(tstart, AGE, event) ~ ",prscols[i],"_group +",covariates)), data=pheno_split_sub, na.action=na.exclude, control=coxph.control(iter.max=100))
         
         controls <- table(pheno_split_sub[[paste0(prscols[i],"_group")]], pheno_split_sub[["event"]])[2:(2*length(p)-1),1]
         cases <- if(sum(nrow(pheno_split_sub[pheno_split_sub[["event"]]==0,])) == length(pheno_split_sub[["event"]])){ 
@@ -148,4 +148,6 @@ for(i in 1:length(phenocols)){
   }
 }
 
-write.csv(results, "file/path/to/output/HR_AgeandSexStratified_[ENTER_BIOBANK_NAME].csv")
+results<-data.frame(results)
+names(results)<-c("phenotype", "prs", "sex", "minage", "maxage", "medianAAO", "groups", "controls", "cases", "betas", "std_errs", "pvals", "HR", "CIpos", "CIneg")
+write.csv(results, paste0(output_dir,"HR_AgeandSexStratified",biobank_name,".csv"))
