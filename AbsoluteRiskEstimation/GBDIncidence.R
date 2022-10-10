@@ -6,16 +6,18 @@ library(rcartocolor)
 library(stringr)
 
 ##### put custom path for incidence, prevalence, mortality
-output_dir<-"/mnt/work/workbench/bwolford/intervene/results/summary/"
+#output_dir<-"/mnt/work/workbench/bwolford/intervene/results/summary/"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/"
 
 #Incidence data - basic pre-processing
-incidence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/GBD_Incidence.csv",data.table=FALSE)
+#incidence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/GBD_Incidence.csv",data.table=FALSE)
+incidence <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/GBD_Incidence.csv",data.table=FALSE)
 
 #Incidence data to be replaced with that for males and females for prostate cancer and breast cancer respectively. Came from a separate dataset to reduce size of the full dataset. 
 incidence <- subset(incidence, cause!="Prostate cancer" & cause!="Breast cancer")
 incidence <- incidence[,c("location","age","cause","metric","val")]
 
-bc_pc_incidence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Incidence.csv", data.table=FALSE)
+bc_pc_incidence <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Incidence.csv", data.table=FALSE)
 bc_pc_incidence <- subset(bc_pc_incidence, (sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer"))
 bc_pc_incidence <- bc_pc_incidence[,c("location","age","cause","metric","val")]
 
@@ -80,7 +82,7 @@ for(i in unique(incidence$cause)){
           axis.text.x = element_text(size = 12, angle=-90, hjust=0),
           axis.title.y = element_text(size = 18),
           axis.text.y = element_text(size = 16))
-  #ggsave(paste0("/Users/jermy/Documents/INTERVENE/Results/GBD_Incidence/LifetimeRisk/",i,"_GBDRates.png"), height=10 , width=10)
+  ggsave(paste0(output_dir,i,"_GBDRates.png"), height=10 , width=10)
 }
 
 #Divide incidence rates by 100,000 to get the incidence as a probability (note: incidence rates are per year)
@@ -88,11 +90,11 @@ incidence$incidence <- incidence$val / 100000
 incidence <- incidence[,c("location","age","cause","metric","incidence")]
 
 #Prevalence - use to calculate hazard (incidence/(1-prevalence)) - The code is equivalent to that defined for incidence. 
-prevalence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/GBD_Prevalence.csv", data.table=FALSE)
+prevalence <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/GBD_Prevalence.csv", data.table=FALSE)
 prevalence <- subset(prevalence, cause!="Prostate cancer" & cause!="Breast cancer")
 prevalence <- prevalence[,c("location","age","cause","metric","val")]
 
-bc_pc_prevalence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Prevalence.csv", data.table=FALSE)
+bc_pc_prevalence <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Prevalence.csv", data.table=FALSE)
 bc_pc_prevalence <- subset(bc_pc_prevalence, (sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer"))
 bc_pc_prevalence <- bc_pc_prevalence[,c("location","age","cause","metric","val")]
 
@@ -149,7 +151,7 @@ incidence <- incidence[,c("location","age","cause","incidence","hazard","risk")]
 #Use all cause and cause specific mortality incidence rates to calculate the competing risk of death during the age interval
 
 #Calculate age specific and disease specific mortality
-mortality <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/GBD_Mortality.csv", data.table=FALSE)
+mortality <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/GBD_Mortality.csv", data.table=FALSE)
 mortality <- mortality[,c("location","age","cause","metric","val")]
 
 mortality <- subset(mortality, cause!="Prostate cancer" & cause!="Breast cancer")
@@ -199,7 +201,7 @@ mortality$mortality_rate <- (mortality$all_cause_rate - mortality$cause_specific
 mortality <- mortality[,c("location","age","cause","mortality_rate")]
 
 #Perform the same as above but for sex specific diseases - breast cancer and prostate cancer 
-bc_pc_mortality <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Mortality.csv", data.table=FALSE)
+bc_pc_mortality <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/BreastCancerProstateCancer_Mortality.csv", data.table=FALSE)
 
 bc_pc_mortality <- subset(bc_pc_mortality, (sex=="Male" & cause=="Prostate cancer") | (sex=="Female" & cause=="Breast cancer") | cause=="All causes")
 bc_pc_mortality <- bc_pc_mortality[,c("location","sex","age","cause","metric","val")]

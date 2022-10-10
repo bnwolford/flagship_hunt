@@ -112,5 +112,5 @@ for(i in 1:length(phenocols)){
 }
 
 results<-data.frame(results)
-names(results)<-c("phenotype", "prs", "sex", "minage", "maxage", "medianAAO", "controls", "cases", "betas", "std_errs", "pvals", "HR", "CIpos", "CIneg")
+names(results)<-c("phenotype", "prs", "minage", "maxage", "medianAAO", "controls", "cases", "betas", "std_errs", "pvals", "HR", "CIpos", "CIneg")
 write.csv(results, paste0(output_dir,"HRperSD_AgeStratified_",biobank_name,".csv"))
