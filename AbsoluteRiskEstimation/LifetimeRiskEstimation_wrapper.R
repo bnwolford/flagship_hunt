@@ -1,4 +1,4 @@
-
+#!/usr/bin/env Rscript 
 library(system)
 ####wrapper for countries and studies
 
