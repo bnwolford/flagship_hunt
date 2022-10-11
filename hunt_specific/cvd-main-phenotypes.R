@@ -53,4 +53,11 @@ df %>% mutate(latest=coalesce(`BloHbA1cIFCC@NT4BLM`, `BloHbA1cIFCC@NT3Dia2M1`, `
 df %>% mutate(latest=coalesce(`SeCrea@NT4BLM`, `SeCrea@NT3BLM`, `SeCrea@NT2BLM`,`SeCrea@NT1Dia2MI1`)) %>% mutate(FID=IID) %>% select(IID,FID,latest) %>% filter(!is.na(latest)) %>%
   fwrite(paste0(prs_pipe_path,"Creatinine_eGFR.tsv"),quote=FALSE,sep="\t",col.names=FALSE,row.names=FALSE)
 
+#Creatinine to eGFR:
+#  cr[,eGFR := 30849 * (Creatinine^-1.154) * (age^-0.203) * ifelse(sex == 1, yes = 1., no = 0.742)]
+#this formula can create new outliers, so replace any values above 200 with 200
+
+### HbA1c shows really low performance. I wonder if there might be outliers, or if the data quality is just poor. Could you maybe try to look at the distribution of the data at some point? In the UK biobank, the values make a nice bell curve (https://biobank.ndph.ox.ac.uk/ukb/field.cgi?id=30750).
+#Same thing for BMI , perhaps there are outliers or data codings like “-1”?
+ 
 

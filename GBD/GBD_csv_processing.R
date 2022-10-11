@@ -1,5 +1,10 @@
 #prepare GBD stats
 
+### libraries
+library(data.table)
+library(dplyr)
+library(tidyverse)
+
 gbd_phenos <- c("Total cancers", "Appendicitis", "Asthma", "Atrial fibrillation and flutter", "Ischemic heart disease", "Colon and rectum cancer", "Idiopathic epilepsy", "Gout", "Osteoarthritis hip", "Osteoarthritis knee", "Major depressive disorder", "Malignant skin melanoma", "Rheumatoid arthritis", "Diabetes mellitus type 1", "Diabetes mellitus type 2", "Interstitial lung disease and pulmonary sarcoidosis", "Tracheal, bronchus, and lung cancer")
 gbd_bcpc <-c("Breast cancer","Prostate cancer")
   
