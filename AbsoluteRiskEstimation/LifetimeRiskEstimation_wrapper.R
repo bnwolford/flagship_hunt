@@ -12,7 +12,7 @@ nk<-50
 
 #HUNT
 country<-"Norway"
-path<-"/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/" #must have final backslash
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/" #must have final backslash
 full_HR_path<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/HR_FullSample_HUNT.csv" #must go straight to csv
 output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/" #must have final backslash
 biobank<-"HUNT"
@@ -24,17 +24,56 @@ system("Rscript /mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/Lif
 
 #ESTBB
 country<-"Estonia"
-path<-"/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/" #must have final backslash
-full_HR_path<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/HR_FullSample_HUNT.csv" #must go straight to csv
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/" #must have final backslash
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/EstBB_HazardRatios/HR_FullSample_EstBB.csv"
+df<-fread(full_HR_path)
+fwrite(df[,-1],"/mnt/work/workbench/bwolford/intervene/GoogleDrive/EstBB_HazardRatios/HR_FullSample_EstBB_reformat.csv")
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/EstBB_HazardRatios/HR_FullSample_EstBB_reformat.csv"
 output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/" #must have final backslash
 biobank<-"EstBB"
+ancestry<-"EUR"
 #source(paste0(path,"LifetimeRiskEstimation_FullSample.R"))
 
-system(paste0("Rscript /mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/LifetimeRiskEstimation_FullSample_Script.R --country ", country,
-" --path ",path, " --output_dir ", output_dir, " --biobank", biobank, " --k", nk," --hr ", full_HR_path))
+country<-"Japan"
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/" #must have final backslash
+full_HR_path<-'/mnt/work/workbench/bwolford/intervene/GoogleDrive/Biobank_Japan_HazardRatios/HR_FullSampleBBJ.csv'
+df<-fread(full_HR_path)
+fwrite(df[,-1],"/mnt/work/workbench/bwolford/intervene/GoogleDrive/Biobank_Japan_HazardRatios/HR_FullSampleBBJ_reformat.csv")
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/Biobank_Japan_HazardRatios/HR_FullSampleBBJ_reformat.csv"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/" #must have final backslash
+biobank<-"BBJ"
+ancestry<-"EAS"
+
+system(paste0("Rscript /mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/LifetimeRiskEstimation_FullSample_Script.R --country ", country," --path ",path, " --output_dir ", output_dir, " --biobank ", biobank, " --k ", nk," --hr ", full_HR_path))
+
+country<-"Scotland"
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/"
+biobank<-"GS"
+ancestry<-"EUR"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/"
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/GenerationScotland_HazardRatios/HR_FullSampleGS.csv"
+
+country<-"England"
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/"
+biobank<-"GNH"
+ancestry<-"SAS"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/"
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/GNH_HazardRatios/HR_FullSample_GNH.csv"
 
 
-
+country<-"'United Kingdom'"
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/"
+biobank<-"UKB"
+output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/"
+full_HR_path<-"/mnt/work/workbench/bwolford/intervene/GoogleDrive/UKB_HazardRatios/HR_FullSample_UKB_AllAncestries.csv"
+df<-fread(full_HR_path)
+ancestries<-unique(df$Ancestry)
+for (i in 1:length(ancestries)){
+ df%>% filter(str_detect(Ancestry,ancestries[i])) %>% select(-"Ancestry") %>% fwrite(paste0("/mnt/work/workbench/bwolford/intervene/GoogleDrive/UKB_HazardRatios/HR_FullSample_UKB_",ancestries[i],".csv"))
+  ancestry<-ancestries[i]
+  full_HR_path<-paste0("/mnt/work/workbench/bwolford/intervene/GoogleDrive/UKB_HazardRatios/HR_FullSample_UKB_",ancestries[i],".csv")
+  system(paste0("Rscript /mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/LifetimeRiskEstimation_FullSample_Script.R --country=", country," --path=",path, " --output_dir=", output_dir, " --biobank=", biobank, " --k=", nk," --hr=", full_HR_path))
+}
 
 
 

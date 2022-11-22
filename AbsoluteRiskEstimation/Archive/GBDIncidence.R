@@ -8,7 +8,7 @@ library(stringr)
 ##### put custom path for incidence, prevalence, mortality
 #output_dir<-"/mnt/work/workbench/bwolford/intervene/results/summary/"
 output_dir<-"/mnt/work/workbench/bwolford/intervene/2022_10_06/RiskEstimates/"
-path<-"/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/"
+path<-"/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/"
 #Incidence data - basic pre-processing
 #incidence <- fread("/mnt/work/workbench/bwolford/flagship/AbsoluteRiskEstimation/GBD_Incidence.csv",data.table=FALSE)
 incidence <- fread(paste0(path,"GBD_Incidence.csv"),data.table=FALSE)
@@ -151,7 +151,7 @@ incidence <- incidence[,c("location","age","cause","incidence","hazard","risk")]
 #Use all cause and cause specific mortality incidence rates to calculate the competing risk of death during the age interval
 
 #Calculate age specific and disease specific mortality
-mortality <- fread("/mnt/work/workbench/bwolford/hunt_flagship/AbsoluteRiskEstimation/GBD_Mortality.csv", data.table=FALSE)
+mortality <- fread(paste0(path,"GBD_Mortality.csv"), data.table=FALSE)
 mortality <- mortality[,c("location","age","cause","metric","val")]
 
 mortality <- subset(mortality, cause!="Prostate cancer" & cause!="Breast cancer")
