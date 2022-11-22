@@ -1,4 +1,7 @@
 #!/usr/bin/env Rscript 
+
+print(.libPaths())
+
 library(system)
 ####wrapper for countries and studies
 
