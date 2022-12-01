@@ -76,7 +76,7 @@ for(i in unique(incidence$cause)){
     labs(color='Country') +
     scale_color_hue(labels = c("Estonia", "Finland", "Global", "Norway", "UK", "USA")) +
     theme(title = element_text(size = 22),
-          legend.text = element_text(size = 16),
+          legend.text = element_text(size = 18),
           legend.title = element_text(size = 18),
           axis.title.x = element_text(size = 18),
           axis.text.x = element_text(size = 12, angle=-90, hjust=0),

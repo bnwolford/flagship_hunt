@@ -16,16 +16,16 @@ covariates<-paste(sep=" + ",covariates,custom_covar)
   
 #instructions in readme.md https://github.com/intervene-EU-H2020/flagship
 
-source(paste0(script_path, "HUNT_HazardRatioperStandardDeviation.R"))
+#source(paste0(script_path, "HUNT_HazardRatioperStandardDeviation.R"))
 print("HazardRatioperStandardDeviation.R finished running")
 
-source(paste0(script_path,"HUNT_HazardRatio_AgeStratified.R"))
+#source(paste0(script_path,"HUNT_HazardRatio_AgeStratified.R"))
 print("HazardRatio_AgeStratified finished running")
 
-source(paste0(script_path,"HUNT_HazardRatio_AgeandSexStratified.R"))
+#source(paste0(script_path,"HUNT_HazardRatio_AgeandSexStratified.R"))
 print("HazardRatio_AgeandSexStratified.R finished running")
 
-source(paste0(script_path,"HUNT_HazardRatio_FullSample.R"))
+#source(paste0(script_path,"HUNT_HazardRatio_FullSample.R"))
 print("HUNT_HazardRatio_FullSample.R finished running")
 
 source(paste0(script_path,"HUNT_HazardRatioperSD_AgeandSexStratified.R"))

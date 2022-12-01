@@ -49,8 +49,21 @@ df %>% mutate(latest=coalesce(`BloHbA1cIFCC@NT4BLM`, `BloHbA1cIFCC@NT3Dia2M1`, `
   fwrite(paste0(prs_pipe_path,"HbA1c.tsv"),quote=FALSE,sep="\t",col.names=FALSE,row.names=FALSE)
 
 #creatinine
-#"SeCrea@NT2BLM", "SeCrea@NT3BLM" "SeCrea@NT4BLM"      "SeCrea@NT1Dia2MI1" 
-df %>% mutate(latest=coalesce(`SeCrea@NT4BLM`, `SeCrea@NT3BLM`, `SeCrea@NT2BLM`,`SeCrea@NT1Dia2MI1`)) %>% mutate(FID=IID) %>% select(IID,FID,latest) %>% filter(!is.na(latest)) %>%
+vars<-c("SeCrea@NT2BLM", "SeCrea@NT3BLM","SeCrea@NT4BLM","SeCrea@NT1Dia2MI1")
+ages<-c("PartAg@NT2BLQ1","PartAg@NT3BLQ1","PartAg@NT4BLM","PartAg@NT2BLQ1") #is BLQ1 equiv to BLM and what about PartAge for the DIa2M1???w
+for (v in 1:length(vars)){
+  if (!is.na(vars[v])){
+    val<-vars[v]
+    age<-ages[v]
+    next
+  }
+}
+sub<-df %>% mutate(latest=coalesce(`SeCrea@NT4BLM`, `SeCrea@NT3BLM`, `SeCrea@NT2BLM`,`SeCrea@NT1Dia2MI1`)) %>% mutate(FID=IID) %>% select(IID,FID,latest) %>% filter(!is.na(latest))
+sub[,eGFR := 30849 * (Creatinine^-1.154) * (age^-0.203) * ifelse(sex == 1, yes = 1., no = 0.742)]
+
+#"SeCreaRecal@NT2BLM"
+#A recalibrated variable from Jaffe to enzymatic method exists in the HUNT Databank
+  
   fwrite(paste0(prs_pipe_path,"Creatinine_eGFR.tsv"),quote=FALSE,sep="\t",col.names=FALSE,row.names=FALSE)
 
 #Creatinine to eGFR:
