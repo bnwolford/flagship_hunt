@@ -33,6 +33,7 @@ files<- files[!grepl("etter",files)] #what is issue with that sav file?
 endpoints <- fread(endpoint_file, data.table=FALSE)
 head(endpoints)
 
+
 #Transforms input into regex format for detecting ICD_10, ICD_9 and ATC codes that will be recognised by the following code using grepl.
 endpoints$ICD_10 <- ifelse(!is.na(endpoints$COD_ICD_10), paste0("^10x(",endpoints$COD_ICD_10,")"), NA)
 endpoints$ICD_10_EXC <- ifelse(!is.na(endpoints$COD_ICD_10_EXC), paste0("^10x(",endpoints$COD_ICD_10_EXC,")"), NA)
@@ -97,6 +98,13 @@ names(dat)<-c("ID","DATE","CODE1")
 #Level 1 phenotypes can be defined using ICD codes. 
 #Level 2 phenotypes require level 1 phenotypes to be defined. 
 #Level 3 phenotypes require level 2 phenotypes to be defined. 
+
+
+
+#REF NAME SEX PRE_CONDITIONS INCLUDE EXCLUDE COD_ICD_10 COD_ICD_9 COD_ICD_10_EXCL COD_ICD_9_EXCL KELA_ATC LEVEL    ICD_10
+#15  16  T1D  NA             NA    <NA>  E4_DM2        E10 250[0|1]1            <NA>           <NA>     <NA>     3 ^10x(E10)
+##ICD_10_EXC          ICD_9 ICD_9_EXC  ATC                     CODE CODE_EXC
+#15       <NA> ^9x(250[0|1]1)      <NA> <NA> ^10x(E10)|^9x(250[0|1]1)        
 
 
 #For loop which iterates over each endpoint and extracts all instances where the code can be found in the longitudinal dataset. Extracts the earliest date for each participant. 
@@ -165,7 +173,7 @@ write.csv(dataset, paste0(output_dir,'endpointsDefinitionsHUNT.csv'),row.names=F
 #Aim for this section of code is to produce a wide table which will create an array of all phenotypes that belong to a person.
 #No information is provided on earliest date for this table. 
 
-endpoints <- fread('endpointsDefinitionsHUNT.csv', data.table=FALSE)
+endpoints <- fread(paste0(output_dir,'endpointsDefinitionsHUNT.csv'), data.table=FALSE)
 endpoints$ID<-as.character(endpoints$ID)
 uniqueIDs <- as.data.frame(endpoints$ID[!duplicated(endpoints$ID)])
 colnames(uniqueIDs) <- 'ID'
