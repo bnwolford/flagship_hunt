@@ -1,0 +1,92 @@
+---
+title: "Comparison of GBD vs Estonian BB cuminc estimates"
+author: "Kristi Lall"
+date: "16 01 2023"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We are plotting GBD estimates against cuminc (AGE,competing event, group_per_PGS) types from EstBB - left truncation ignored.
+
+
+```{r first, echo=TRUE}
+
+
+
+setwd("/gpfs/space/GI/GV/Projects/Intervene_grs/Absrisk_calibration")
+#artikli supplement https://docs.google.com/spreadsheets/d/1u31O_aVrB--SnVJn98mVvu9kexdSWbFsTrD4s_Mh5O8/edit?pli=1#gid=0
+abs=read.csv("/gpfs/space/GI/GV/Projects/Intervene_grs/Absrisk_calibration/Supplementary_Table_12_INTERVENE.csv",header=T,sep=";")
+abs=abs[abs$Country %in% "Estonia",]
+colnames(abs)[1]="phenotype"
+colnames(abs)[9]="Abs"
+colnames(abs)[10]="Abs_L"
+colnames(abs)[11]="Abs_U"
+
+abs$type="GBD"
+#from data
+
+estbb=read.csv("Inc_FullSample_EstBB211122.csv")
+estbb$Sex=ifelse(estbb$X.1=="male","Males","Full")
+estbb$Sex=ifelse(estbb$X.1=="female","Females",estbb$Sex)
+estbb$Sex=ifelse(estbb$X.1=="full" & estbb$phenotype %in% "C3_BREAST" ,"Females",estbb$Sex)
+estbb$Sex=ifelse(estbb$X.1=="full" & estbb$phenotype %in% "C3_PROSTATE" ,"Males",estbb$Sex)
+
+
+
+colnames(estbb)[5]="PGS.Strata"
+estbb$type="Cohort"
+
+#Libraries
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+
+phenocols <- c("C3_CANCER", "K11_APPENDACUT", "J10_ASTHMA", "I9_AF", "C3_BREAST", "I9_CHD", "C3_COLORECTAL", "G6_EPLEPSY", "GOUT", "COX_ARTHROSIS", "KNEE_ARTHROSIS", "F5_DEPRESSIO", "C3_MELANOMA_SKIN", "C3_PROSTATE", "RHEUMA_SEROPOS_OTH", "T1D", "T2D", "ILD", "C3_BRONCHUS_LUNG")
+prscols <- c("AllCancers", "Appendicitis", "Asthma", "Atrial_Fibrillation", "Breast_Cancer", "CHD", "Colorectal_Cancer", "Epilepsy","Gout", "Hip_Osteoarthritis", "Knee_Osteoarthritis","MDD", "Melanoma", "Prostate_Cancer", "Rheumatoid_Arthritis", "T1D","T2D", "ILD", "Lung_Cancer")
+
+results <- c()
+library(ggplot2)
+for(i in 1:length(phenocols)){
+pheno=estbb[estbb$phenotype %in% phenocols[i],]
+abs2=abs[abs$phenotype %in% phenocols[i],]
+pheno=pheno[order(pheno$X.1, pheno$X),]
+#pivot the data frame into a long format
+pheno2<-  data.frame(pheno %>% pivot_longer(cols=paste("X",seq(0,80,5),sep=""),
+                    names_to='year',
+                    values_to='Abs'))
+pheno2$Abs=100*pheno2$Abs
+pheno2$Age=substr(pheno2$year,2,10)
+library(ggplot2)
+
+#joining together
+pheno2$Abs_U=pheno2$Abs_L=NA
+kokku=rbind(pheno2[,c("phenotype","Abs","Abs_U","Abs_L","type","Age","PGS.Strata","Sex")],abs2[,c("phenotype","Abs","Abs_U","Abs_L","type","Age","PGS.Strata","Sex")])
+
+kokku$Age=as.numeric(kokku$Age)
+kokku$type=as.factor(kokku$type)
+
+cat("This pictures are for ", phenocols[i]) 
+
+
+males=kokku[kokku$Sex=="Males",]
+p1<- ggplot(males, aes(x = Age, y = Abs, group =  interaction(type, PGS.Strata),color=PGS.Strata, shape=type )) +
+  geom_point() + geom_line()
+
+p1x <- p1 +ggtitle( "Cumulative incidence comparison under competing risks for males") +   theme_bw()+ xlab("Age")+ylab("Cuminc")
+
+print(p1x)
+females=kokku[kokku$Sex=="Females",]
+
+p2<- ggplot(females, aes(x = Age, y = Abs, group =  interaction(type, PGS.Strata),color=PGS.Strata , shape=type)) +
+ geom_point() + geom_line()
+
+p2x<- p2+ggtitle( "Cumulative incidence comparison under competing risks for females") +   theme_bw()+ xlab("Age")+ylab("Cuminc")
+
+print(p2x)
+}
+```
